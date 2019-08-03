@@ -92,27 +92,32 @@ int main(void)
 {
   HAL_Init();
 
-  /* Configure the system clock to 2 MHz */
+  /* Configure the System clock to 2 MHz */
   SystemClock_Config();
 
-  /* -1- Enable GPIO Clock (to be able to program the configuration registers) */
-  LED2_GPIO_CLK_ENABLE();
+  /* Configure GPIO's to AN to reduce power consumption */
+  GPIO_ConfigAN();
 
-  /* -2- Configure IO in output push-pull mode to drive external LEDs */
-  GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull  = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  /* Initialize LED */
+  BSP_LED_Init(LED2);
 
-  GPIO_InitStruct.Pin = LED2_PIN;
-  HAL_GPIO_Init(LED2_GPIO_PORT, &GPIO_InitStruct);
+  /* Create the queue used by the two threads */
+  osMessageQDef(osqueue, QUEUE_LENGTH, uint16_t);
+  osQueue = osMessageCreate(osMessageQ(osqueue), NULL);
 
-  /* -3- Toggle IO in an infinite loop */
-  while (1)
-  {
-	HAL_GPIO_TogglePin(LED2_GPIO_PORT, LED2_PIN);
-	/* Insert delay 100 ms */
-	HAL_Delay(1000);
-  }
+  /* Note the Tx has a lower priority than the Rx when the threads are
+  spawned. */
+  osThreadDef(RxThread, QueueReceiveThread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+  osThreadCreate(osThread(RxThread), NULL);
+
+  osThreadDef(TxThread, QueueSendThread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE);
+  osThreadCreate(osThread(TxThread), NULL);
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
+  for (;;);
 
 }
 

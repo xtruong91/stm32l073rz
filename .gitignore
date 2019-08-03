@@ -2,5 +2,5 @@ Debug/
 .cproject
 .project
 .settings/
-
+.metadata
 AutoDevice.elf.launch
