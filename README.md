@@ -1,4 +1,9 @@
-# Microcontroller feature
+# STM32L073 Platform
+
+# Hardware 
+
+![Architectual Hardware](doc/hardware.PNG?raw=true)
+
 - STM32L073RZT6 in LQFP64 package
 - ARM32-bit Cortex-M0+ CPU
 - 32 MHz max CPU frequency
